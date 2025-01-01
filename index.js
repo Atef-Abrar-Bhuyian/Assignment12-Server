@@ -29,10 +29,17 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
-    
+
     app.get("/topNeedVolunteer", async (req, res) => {
       const cursor = needVolunteer.find().sort({ deadline: 1 }).limit(6);
       const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    app.get("/volunteerPost/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await needVolunteer.findOne(query);
       res.send(result);
     });
 
