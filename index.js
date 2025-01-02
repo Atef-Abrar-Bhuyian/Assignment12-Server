@@ -24,18 +24,21 @@ async function run() {
   try {
     const needVolunteer = client.db("volunteerDB").collection("needVolunteer");
 
+    // get all volunteer post
     app.get("/needVolunteer", async (req, res) => {
       const cursor = needVolunteer.find();
       const result = await cursor.toArray();
       res.send(result);
     });
 
+    // get volunteer post by close deadline
     app.get("/topNeedVolunteer", async (req, res) => {
       const cursor = needVolunteer.find().sort({ deadline: 1 }).limit(6);
       const result = await cursor.toArray();
       res.send(result);
     });
 
+    // get specific volunteer post
     app.get("/volunteerPost/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -43,9 +46,18 @@ async function run() {
       res.send(result);
     });
 
+    // add volunteer post
     app.post("/addPost", async (req, res) => {
       const newPost = req.body;
       const result = await needVolunteer.insertOne(newPost);
+      res.send(result);
+    });
+
+    // get all jobs posted by a specific user
+    app.get("/post/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { organizerEmail: email };
+      const result = await needVolunteer.find(query).toArray();
       res.send(result);
     });
 
