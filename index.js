@@ -43,6 +43,12 @@ async function run() {
       res.send(result);
     });
 
+    app.post("/addPost", async (req, res) => {
+      const newPost = req.body;
+      const result = await needVolunteer.insertOne(newPost);
+      res.send(result);
+    });
+
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     // Send a ping to confirm a successful connection
