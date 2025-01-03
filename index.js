@@ -61,6 +61,19 @@ async function run() {
       res.send(result);
     });
 
+    // Update a post in db
+    app.put("/updatePost/:id", async (req, res) => {
+      const id = req.params.id;
+      const postData = req.body;
+      const updated = {
+        $set: postData,
+      };
+      const query = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const result = await needVolunteer.updateOne(query, updated, options);
+      res.send(result);
+    });
+
     // delete a post from db
     app.delete("/post/:id", async (req, res) => {
       const id = req.params.id;
