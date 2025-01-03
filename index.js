@@ -23,6 +23,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const needVolunteer = client.db("volunteerDB").collection("needVolunteer");
+    const volunteerRequest = client.db("volunteerDB").collection("volunteerRequest");
 
     // get all volunteer post
     app.get("/needVolunteer", async (req, res) => {
@@ -46,10 +47,17 @@ async function run() {
       res.send(result);
     });
 
-    // add volunteer post
-    app.post("/addPost", async (req, res) => {
-      const newPost = req.body;
-      const result = await needVolunteer.insertOne(newPost);
+    // add volunteer request
+    app.post("/volunteerRequest", async (req, res) => {
+      const newRequest = req.body;
+      const result = await volunteerRequest.insertOne(newRequest);
+      res.send(result);
+    });
+
+    // get requested volunteers
+    app.get("/volunteerRequest", async (req, res) => {
+      const cursor = volunteerRequest.find();
+      const result = await cursor.toArray();
       res.send(result);
     });
 
