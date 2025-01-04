@@ -29,7 +29,14 @@ async function run() {
 
     // get all volunteer post
     app.get("/needVolunteer", async (req, res) => {
-      const cursor = needVolunteer.find();
+      const search = req.query.search || "";
+      let query = {
+        postTitle: {
+          $regex: search,
+          $options: "i",
+        },
+      };
+      const cursor = needVolunteer.find(query);
       const result = await cursor.toArray();
       res.send(result);
     });
