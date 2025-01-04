@@ -23,7 +23,9 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const needVolunteer = client.db("volunteerDB").collection("needVolunteer");
-    const volunteerRequest = client.db("volunteerDB").collection("volunteerRequest");
+    const volunteerRequest = client
+      .db("volunteerDB")
+      .collection("volunteerRequest");
 
     // get all volunteer post
     app.get("/needVolunteer", async (req, res) => {
@@ -47,10 +49,29 @@ async function run() {
       res.send(result);
     });
 
+    // add a post
+    app.post("/addPost", async (req, res) => {
+      const newPost = req.body;
+      const result = await needVolunteer.insertOne(newPost);
+      res.send(result);
+    });
+
     // add volunteer request
     app.post("/volunteerRequest", async (req, res) => {
+      // save a post in db
       const newRequest = req.body;
       const result = await volunteerRequest.insertOne(newRequest);
+
+      // decrease number of volunteer
+      const filter = { _id: new ObjectId(newRequest.PostId) };
+      const update = {
+        $inc: { noOfVolunteersNeeded: -1 },
+      };
+      const updateVolunteerNumber = await needVolunteer.updateOne(
+        filter,
+        update
+      );
+
       res.send(result);
     });
 
@@ -61,11 +82,19 @@ async function run() {
       res.send(result);
     });
 
-    // get all jobs posted by a specific user
+    // get all post that posted by a specific user
     app.get("/post/:email", async (req, res) => {
       const email = req.params.email;
       const query = { organizerEmail: email };
       const result = await needVolunteer.find(query).toArray();
+      res.send(result);
+    });
+
+    // get all request post that request by a specific user
+    app.get("/requesPost/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { volunteerEmail: email };
+      const result = await volunteerRequest.find(query).toArray();
       res.send(result);
     });
 
@@ -87,6 +116,14 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await needVolunteer.deleteOne(query);
+      res.send(result);
+    });
+
+    // delete a request from db
+    app.delete("/requestPost/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await volunteerRequest.deleteOne(query);
       res.send(result);
     });
 
