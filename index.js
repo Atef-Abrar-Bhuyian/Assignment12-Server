@@ -119,10 +119,22 @@ async function run() {
       res.send(result);
     });
 
-    // delete a request from db
+    // delete a request from db and update the number of volunteers needed
     app.delete("/requestPost/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
+
+      // Fetch the request details
+      const specificRequest = await volunteerRequest.findOne(query);
+
+      // Update the corresponding post's volunteer count
+      const filter = { _id: new ObjectId(specificRequest.PostId) };
+      const update = {
+        $inc: { noOfVolunteersNeeded: 1 },
+      };
+      await needVolunteer.updateOne(filter, update);
+
+      // Delete the request
       const result = await volunteerRequest.deleteOne(query);
       res.send(result);
     });
