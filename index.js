@@ -5,7 +5,9 @@ const app = express();
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
 
+// whitelisted URL's
 const corsOptions = {
   origin: ["http://localhost:5173"],
   credentials: true,
@@ -14,6 +16,7 @@ const corsOptions = {
 // Middleware
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(cookieParser());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.68dnu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -25,6 +28,23 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
+
+// Verify Token
+const verifyToke = async (req, res, next) => {
+  console.log("Hello, I am MiddleWare");
+  const token = req.cookies?.token;
+  if (!token) {
+    return res.status(401).send({ message: "Unauthorized Access" });
+  }
+
+  jwt.verify(token, process.env.SECRET_TOKEN_KEY, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: "Unauthorized Access" });
+    }
+    req.user = decoded;
+    next();
+  });
+};
 
 async function run() {
   try {
@@ -123,17 +143,29 @@ async function run() {
     });
 
     // get all post that posted by a specific user
-    app.get("/post/:email", async (req, res) => {
+    app.get("/post/:email", verifyToke, async (req, res) => {
+      const decodedEmail = req.user?.email;
       const email = req.params.email;
       const query = { organizerEmail: email };
+
+      if (decodedEmail !== email) {
+        return res.status(403).send({ message: "Forbidden Access" });
+      }
+
       const result = await needVolunteer.find(query).toArray();
       res.send(result);
     });
 
     // get all request post that request by a specific user
-    app.get("/requesPost/:email", async (req, res) => {
+    app.get("/requesPost/:email", verifyToke, async (req, res) => {
+      const decodedEmail = req.user?.email;
       const email = req.params.email;
       const query = { volunteerEmail: email };
+
+      if (decodedEmail !== email) {
+        return res.status(403).send({ message: "Forbidden Access" });
+      }
+
       const result = await volunteerRequest.find(query).toArray();
       res.send(result);
     });
