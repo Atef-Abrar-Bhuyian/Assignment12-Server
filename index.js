@@ -31,7 +31,6 @@ const client = new MongoClient(uri, {
 
 // Verify Token
 const verifyToke = async (req, res, next) => {
-  console.log("Hello, I am MiddleWare");
   const token = req.cookies?.token;
   if (!token) {
     return res.status(401).send({ message: "Unauthorized Access" });
@@ -171,9 +170,15 @@ async function run() {
     });
 
     // Update a post in db
-    app.put("/updatePost/:id", async (req, res) => {
+    app.put("/updatePost/:id", verifyToke, async (req, res) => {
       const id = req.params.id;
       const postData = req.body;
+
+      // verify User Token
+      if (req.user?.email !== postData.organizerEmail) {
+        return res.status(403).send({ message: "Forbidden Access" });
+      }
+
       const updated = {
         $set: postData,
       };
