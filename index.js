@@ -97,6 +97,12 @@ async function run() {
       res.send(result);
     });
 
+    // get all post count for pagination
+    app.get("/totalNumberOfPosts", async (req, res) => {
+      const count = await needVolunteer.estimatedDocumentCount();
+      res.send({ count });
+    });
+
     // get volunteer post by close deadline
     app.get("/topNeedVolunteer", async (req, res) => {
       const cursor = needVolunteer.find().sort({ deadline: 1 }).limit(6);
