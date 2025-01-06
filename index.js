@@ -85,6 +85,8 @@ async function run() {
 
     // get all volunteer post
     app.get("/needVolunteer", async (req, res) => {
+      const page = parseInt(req.query.page);
+      const size = parseInt(req.query.size);
       const search = req.query.search || "";
       let query = {
         postTitle: {
@@ -92,7 +94,10 @@ async function run() {
           $options: "i",
         },
       };
-      const cursor = needVolunteer.find(query);
+      const cursor = needVolunteer
+        .find(query)
+        .skip(page * size)
+        .limit(size);
       const result = await cursor.toArray();
       res.send(result);
     });
